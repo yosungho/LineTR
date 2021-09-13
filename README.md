@@ -3,7 +3,6 @@
 We introduce [Line-Transformer (LineTR)](https://arxiv.org/abs/2109.04753), a context-aware line descriptor for visual localization. 
 
 - We are planning to release inference code and pre-trained weight. Please subscribe to [this issue](https://github.com/yosungho/LineTR/issues/1) if you are interested. 
-- 
 
 <p align="center">
   <a href="https://arxiv.org/abs/2109.04753"><img src="assets/line_matching.gif" width="80%"/></a>
