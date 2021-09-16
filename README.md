@@ -37,8 +37,8 @@ There are two demo scripts:
 Keyboard control:
 * `n`: select the current frame as the anchor
 * `e`/`r`: increase/decrease the keypoint confidence threshold
-* `d`/`f`: increase/decrease the nearest neighborhoods match threshold for **keypoints**
-* `c`/`v`: increase/decrease the nearest neighborhoods match threshold for **keylines**
+* `d`/`f`: increase/decrease the nearest neighbor matching threshold for **keypoints**
+* `c`/`v`: increase/decrease the nearest neighbor matching threshold for **keylines**
 * `k`: toggle the visualization of keypoints
 * `q`: quit
 
