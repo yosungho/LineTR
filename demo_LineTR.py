@@ -100,7 +100,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '--match_threshold', type=float, default=0.8,
         help='LineTR NN match threshold')
-
+    parser.add_argument(
+        '--auto_min_length', action='store_false',
+        help='Adjust minimum line length depending on image size')
     parser.add_argument(
         '--show_keypoints', action='store_true',
         help='Show the detected keypoints')
@@ -130,6 +132,8 @@ if __name__ == '__main__':
     print('Running inference on device \"{}\"'.format(device))
 
     config = {
+        'auto_min_length': opt.auto_min_length,
+
         'superpoint': {
             'nms_radius': 4,
             'keypoint_conf_threshold': 0.005,
