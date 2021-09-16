@@ -64,7 +64,7 @@ if __name__ == '__main__':
         description='LineTR demo',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
-        '--input', type=str, default='1',
+        '--input', type=str, default='4',
         help='ID of a USB webcam, URL of an IP camera, '
              'or path to an image directory or movie file')
     parser.add_argument(
@@ -137,7 +137,7 @@ if __name__ == '__main__':
             'nn_threshold': 0.7,
         },
         'lsd': {
-            'n_octave': 2,
+            'n_octave': 2, 
         },
         'linetransformer': {
             'image_shape': [480, 640],
@@ -231,7 +231,7 @@ if __name__ == '__main__':
             'Image Pair: {:06}:{:06}'.format(stem0, stem1),
         ]
         out = make_pl_matching_plot_fast(
-            last_frame, frame, kpts0, kpts1, mkpts0, mkpts1, klines0, klines1, mklines0, mklines1,
+            last_frame, frame, kpts0, kpts1, mkpts0, mkpts1, klines0, klines1, mklines0, mklines1, 
             color, text,
             path=None, show_keypoints=opt.show_keypoints, small_text=small_text)
 

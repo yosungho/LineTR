@@ -1,6 +1,6 @@
 # Line as a Visual Sentence with LineTR
 
-This repository contains the inference code, pretrained model, and demo scripts of the following [paper](https://arxiv.org/abs/2109.04753).
+This repository contains the inference code, pretrained model, and demo scripts of the following [paper](https://arxiv.org/abs/2109.04753). It supports both point(SuperPoint) and line features(LSD+LineTR).
 ```
 @article{syoon-2021-linetr,
   author    = {Sungho Yoon and Ayoung Kim},

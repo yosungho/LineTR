@@ -53,6 +53,8 @@ if __name__ == '__main__':
     print('Will write matches to directory \"{}\"'.format(output_dir))
 
     config = {
+        'auto_min_length': opt.auto_min_length,
+
         'superpoint': {
             'nms_radius': 4,
             'keypoint_threshold': 0.005,
@@ -82,11 +84,6 @@ if __name__ == '__main__':
         # Load the image pair.
         image0, image_torch0 = read_image(input_dir / name0, device, opt.resize)
         image1, image_torch1 = read_image(input_dir / name1, device, opt.resize)
-
-        if opt.auto_min_length:
-            matching.linetransformer.config['min_length'] = max(16, max(image0.shape)/40)
-            matching.linetransformer.config['token_distance'] = max(8, max(image0.shape)/80)    
-            # print(matching.linetransformer.config['min_length'], matching.linetransformer.config['token_distance'])
 
         # Perform the matching.
         matches_path = output_dir / '{}_{}_matches.npz'.format(stem0, stem1)
@@ -163,5 +160,3 @@ if __name__ == '__main__':
 
         img_path = output_dir / '{}_{}_matches.png'.format(stem0, stem1)
         cv2.imwrite(str(img_path), out)
-
-        pass

@@ -11,6 +11,7 @@ class Matching(torch.nn.Module):
     """ Image Matching with SuperPoint & LineTR """
     def __init__(self, config={}):
         super().__init__()
+        self.auto_min_length = config['auto_min_length']
         self.superpoint = SuperPoint(config.get('superpoint', {}))
         self.lsd = LSD(config.get('lsd', {}), sample_descriptors)
         self.linetransformer = LineTransformer(config.get('linetransformer', {}))
@@ -27,6 +28,10 @@ class Matching(torch.nn.Module):
         
         if 'klines0' not in data:
             image_shape = data['image0'].shape
+            if self.auto_min_length:
+                self.linetransformer.config['min_length'] = max(16, max(image_shape)/40)
+                self.linetransformer.config['token_distance'] = max(8, max(image_shape)/80)
+
             klines_cv = self.lsd.detect_torch(data['image0'])
             klines0 = self.linetransformer.preprocess(klines_cv, image_shape, pred_sp0)
             klines0 = self.linetransformer(klines0)
@@ -34,6 +39,10 @@ class Matching(torch.nn.Module):
 
         if 'klines1' not in data:
             image_shape = data['image1'].shape
+            if self.auto_min_length:
+                self.linetransformer.config['min_length'] = max(16, max(image_shape)/40)
+                self.linetransformer.config['token_distance'] = max(8, max(image_shape)/80)
+
             klines_cv = self.lsd.detect_torch(data['image1'])
             klines1 = self.linetransformer.preprocess(klines_cv, image_shape, pred_sp1)
             klines1 = self.linetransformer(klines1)
