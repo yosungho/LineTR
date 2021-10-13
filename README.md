@@ -2,12 +2,15 @@
 
 This repository contains the inference code, pretrained model, and demo scripts of the following [paper](https://arxiv.org/abs/2109.04753). It supports both point(SuperPoint) and line features(LSD+LineTR).
 ```
-@article{syoon-2021-linetr,
-  author    = {Sungho Yoon and Ayoung Kim},
-  title     = {{Line as a Visual Sentence}: Context-aware Line Descriptor for Visual Localization},
-  booktitle = {IEEE Robotics and Automation Letters},
-  year      = {2021}
-}
+@ARTICLE{syoon-2021-linetr,
+  author={Sungho Yoon and Ayoung Kim},
+  journal={IEEE Robotics and Automation Letters}, 
+  title={Line as a Visual Sentence: Context-Aware Line Descriptor for Visual Localization}, 
+  year={2021},
+  volume={6},
+  number={4},
+  pages={8726-8733},
+  doi={10.1109/LRA.2021.3111760}}
 ```
 <p align="center">
   <a href="https://arxiv.org/abs/2109.04753"><img src="assets/linetr-github.gif" width="80%"/></a>
@@ -49,12 +52,14 @@ The scripts are partially reusing [SuperGluePretrainedNetwork](https://github.co
 
 ```
 @ARTICLE{syoon-2021-linetr,
-  author    = {Sungho Yoon and Ayoung Kim},
-  title     = {{Line as a Visual Sentence}: Context-aware Line Descriptor for Visual Localization},
-  booktitle = {IEEE Robotics and Automation Letters},
-  year      = {2021},
-  url       = {https://arxiv.org/abs/2109.04753}
-}
+  author={Sungho Yoon and Ayoung Kim},
+  journal={IEEE Robotics and Automation Letters}, 
+  title={Line as a Visual Sentence: Context-Aware Line Descriptor for Visual Localization}, 
+  year={2021},
+  volume={6},
+  number={4},
+  pages={8726-8733},
+  doi={10.1109/LRA.2021.3111760}}
 ```
 
 ## Acknowledgment
