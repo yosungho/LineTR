@@ -16,7 +16,8 @@ This repository contains the inference code, pretrained model, and demo scripts 
   <a href="https://arxiv.org/abs/2109.04753"><img src="assets/linetr-github.gif" width="80%"/></a>
 </p>
 
-## TO DO
+---------------------------------------------------
+## TODO List
 - [ ] Support training codes for self-supervised homography augmentation
 - [ ] Support a different line detector
 
