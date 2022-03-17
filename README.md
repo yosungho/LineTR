@@ -2,7 +2,7 @@
 
 This repository contains the inference code, pretrained model, and demo scripts of the following [paper](https://arxiv.org/abs/2109.04753). It supports both point(SuperPoint) and line features(LSD+LineTR).
 ```
-@ARTICLE{syoon-2021-linetr},
+@ARTICLE{syoon-2021-linetr,
   author={Sungho Yoon and Ayoung Kim},
   journal={IEEE Robotics and Automation Letters}, 
   title={Line as a Visual Sentence: Context-Aware Line Descriptor for Visual Localization}, 
@@ -15,6 +15,10 @@ This repository contains the inference code, pretrained model, and demo scripts 
 <p align="center">
   <a href="https://arxiv.org/abs/2109.04753"><img src="assets/linetr-github.gif" width="80%"/></a>
 </p>
+
+## TO DO
+- [ ] Support training codes for self-supervised homography augmentation
+- [ ] Support a different line detector
 
 ## Abstract
 
@@ -51,7 +55,7 @@ The scripts are partially reusing [SuperGluePretrainedNetwork](https://github.co
 ## BibTeX Citation
 
 ```
-@ARTICLE{syoon-2021-linetr},
+@ARTICLE{syoon-2021-linetr,
   author={Sungho Yoon and Ayoung Kim},
   journal={IEEE Robotics and Automation Letters}, 
   title={Line as a Visual Sentence: Context-Aware Line Descriptor for Visual Localization}, 
