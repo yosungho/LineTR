@@ -4,3 +4,4 @@ opencv-contrib-python ==4.0.1.24    # LSD detector
 numpy
 einops
 matplotlib
+imgaug

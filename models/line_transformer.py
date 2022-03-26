@@ -3,7 +3,7 @@ from pathlib import Path
 import torch
 from torch import nn
 from .line_attention import MultiHeadAttention, FeedForward
-from .line_process import filter_by_length, get_angles, get_dist_matrix, remove_borders, line_tokenizer
+from .line_process import *
 from einops import rearrange, repeat
 
 def MLP(channels: list, do_bn=True):    # channels [3, 32, 64, 128, 256, 256]
@@ -21,7 +21,10 @@ def MLP(channels: list, do_bn=True):    # channels [3, 32, 64, 128, 256, 256]
 
 def normalize_keylines(klines, kplines, image_shape):
     """ Normalize keylines locations based on image shape"""
-    _, _, height, width = image_shape   # height: 480, width: 640
+    if len(image_shape)==2:
+        height, width = image_shape
+    else:
+        _, _, height, width = image_shape    # height: 480, width: 640
     one = klines.new_tensor(1)
     size = torch.stack([one*width, one*height])[None]
     center = size / 2
@@ -182,6 +185,7 @@ class SelfAttentionalLayer(nn.Module):
 class LineTransformer(nn.Module):
     """ Line-Transformer Networks including Line Descriptive Nets and Line Signature Nets """
     default_config = {
+        'mode': 'test',
         'image_shape': [480, 640],
         'min_length': 16,
         'token_distance': 8,
@@ -199,6 +203,7 @@ class LineTransformer(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = {**self.default_config, **config}
+        self.image_shape = self.config['image_shape']
 
         ## Line Descriptive Network
         self.klenc = KeylineEncoder(
@@ -210,11 +215,12 @@ class LineTransformer(nn.Module):
         self.final_proj = nn.Conv1d(
             self.config['descriptor_dim'], self.config['descriptor_dim'],
             kernel_size=1, bias=True)
-
-        path = Path(__file__).parent / 'weights/LineTR_weight.pth'
-        self.load_state_dict(torch.load(path))
-
-        print('Loaded Line-Transformer model')
+        
+        
+        if self.config['mode'] == 'test':
+            path = Path(__file__).parent / 'weights/LineTR_weight.pth'
+            self.load_state_dict(torch.load(path))
+            print('Loaded Line-Transformer model')
 
     def forward(self, data):
         if len(data['klines'])==0:
@@ -229,7 +235,7 @@ class LineTransformer(nn.Module):
         mask_sublines = data['mask_sublines']
         
         # Keyline normalization.
-        klines, pnt_sublines = normalize_keylines(klines, pnt_sublines, self.config['image_shape'])
+        klines, pnt_sublines = normalize_keylines(klines, pnt_sublines, self.image_shape)
 
         # line descriptive networks
         line_desc_ = self.klenc(klines, resp, angle, pnt_sublines, desc_sublines, score_sublines, mask_sublines)
@@ -242,22 +248,30 @@ class LineTransformer(nn.Module):
 
         return data
     
-    def preprocess(self, klines_cv, image_shape, pred_superpoint):
+    def preprocess(self, klines_cv, image_shape, pred_superpoint, valid_mask=None):
         """ Pre-process for line tokenization """
-        # filter_by_length
-        klines = filter_by_length(klines_cv, self.config['min_length'], self.config['max_keylines']) # 15 msec
-        num_klines = len(klines['klines'])
-        if num_klines == 0:
-            return klines
+        
+        # change line formats (cv2 -> numpy)
+        klines =change_cv2_T_np(klines_cv)
 
         # remove_borders
         _,_,height, width = self.config['image_shape'] = image_shape
         border = self.config['remove_borders']
-        klines = remove_borders(klines, border, height, width)
+        
+        if valid_mask is None:
+            valid_mask = np.ones((height, width))
+            
+        klines = remove_borders(klines, border, height, width, valid_mask)
 
+        # filter_by_length
+        klines = filter_by_length(klines, self.config['min_length'], self.config['max_keylines']) # 15 msec
+        num_klines = len(klines['klines'])
+        if num_klines == 0:
+            return klines
+        
         # line_tokenizer
-        klines = line_tokenizer(klines, self.config['token_distance'], self.config['max_tokens'], pred_superpoint)
-        state = True
+        klines = line_tokenizer(klines, self.config['token_distance'], self.config['max_tokens'], pred_superpoint, image_shape[-2:])
+        
         return klines
     
     def subline2keyline(self, distance_sublines, mat_klines2sublines0, mat_klines2sublines1):

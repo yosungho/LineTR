@@ -1,0 +1,69 @@
+---
+data:
+    # name: 'gcl_synth'
+    image_path: './assets/dataset/raw_images'
+    output_path: './assets/dataset/dataset_h5'
+    image_type: '*.jpg'
+    resize: !!python/tuple [640,480]    # width, height
+    debug_on: false
+
+    n_iters: 1          # iterations of all image set 
+    choose_worker: 0    # choose a worker's index ( 0 ~ nWorkers-1 )
+    nWorkers: 1         # number of workers you use. (# of GPUs) it divides total imageset into nWorkers. 
+
+augmentation:
+    num: 1  # number of pairs per an original image
+    photometric:
+        enable: true
+        primitives: [
+            'random_brightness', 'random_contrast', 'additive_speckle_noise',
+            'additive_gaussian_noise', 'additive_shade', 'motion_blur' ]
+        params:
+            random_brightness: {max_abs_change: 50}
+            random_contrast: {strength_range: [0.3, 1.5]}
+            additive_gaussian_noise: {stddev_range: [0, 10]}
+            additive_speckle_noise: {prob_range: [0, 0.0035]}
+            additive_shade:
+                transparency_range: [-0.5, 0.5]
+                kernel_size_range: [100, 150]
+            motion_blur: {max_kernel_size: 3} 
+
+    homographic:
+        enable: true
+        params:
+            perspective: true
+            scaling: true
+            translation: true
+            rotation: true
+
+            patch_ratio: 0.85   
+
+            perspective_amplitude_x: 0.2
+            perspective_amplitude_y: 0.2   
+
+            scaling_amplitude: 0.2
+            max_angle: 1.0472 # 60deg (1.5708: 90deg)
+            allow_artifacts: true
+
+        valid_border_margin: 3
+
+feature:
+    linetr:
+        min_length: 16
+        token_distance: 8       # pixels
+        max_tokens: 21   # subline에 있는 최대 point개수
+        remove_borders: 1
+
+        max_sublines: 300      # sub선분의 최대 개수 제한 > 실제 line 개수
+
+        thred_reprojected: 3    # pixels
+        thred_angdiff: 2        # degrees
+        min_overlap_ratio: 0.3
+
+    superpoint:
+        nms_radius: 4
+        keypoint_threshold: 0.005
+        remove_borders: 4
+        max_keypoints: 256
+
+...

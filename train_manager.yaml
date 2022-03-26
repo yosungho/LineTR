@@ -1,0 +1,46 @@
+---
+mode: 'train'
+device: [0]                 # e.g. [0,1,2,3]
+batch_size: 1
+num_workers: 10             # num_workers == batchsize_per_gpu works best for my model
+rank_metric: 'f1_score'     # precision
+
+## training config
+fix_randomness: true
+epochs: 1000
+lr: 0.001
+wd: 0                       # weight_decay
+
+## evaluation
+nn_thresh: 0.7
+mutual_nn: true
+
+## debug
+debug_times:              false
+dmsg_freq: 10
+ignore_warnings:          true
+
+## data
+dataset_type: homography
+backup_path: 'assets/dataset/train_results' 
+
+homography: 
+    data_path: ['assets/dataset/dataset_h5']
+    resume: false
+    checkpoint_path: 'assets/dataset/train_results/mode=train.input=linetr.lr=0.001.bs=30.wd=0.time=2022-03-26@13-24/model_best.pth.tar' 
+
+linetr:
+    mode: 'train'
+    image_shape: !!python/tuple [480,640]   # height, width
+    min_length: 16
+    token_distance: 8
+    max_tokens: 21
+    remove_borders: 1
+    max_keylines: -1
+
+    descriptor_dim: 256
+    keyline_encoder: [32, 64, 128, 256]
+    n_heads: 4
+    n_line_descriptive_layers: 12
+    d_inner: 1024    # d_inner at the Feed_Forward Layer
+...

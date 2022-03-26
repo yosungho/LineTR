@@ -45,6 +45,7 @@
 # %BANNER_END%
 
 from pathlib import Path
+import os
 import time
 from collections import OrderedDict
 from threading import Thread
@@ -639,3 +640,201 @@ def make_pl_matching_plot_fast(last_frame, frame, kpts0, kpts1, mkpts0, mkpts1,
         cv2.waitKey(1)
 
     return out
+
+
+##################################################################################################
+from evaluations.metric import Result
+import csv
+import shutil
+
+def get_folder_name(args):
+    current_time = time.strftime('%Y-%m-%d@%H-%M')
+    prefix = "mode={}.".format(args.mode)
+
+    return os.path.join(args.backup_path,
+        prefix + 'input={}.lr={}.bs={}.wd={}.time={}'.
+        format('linetr', args.lr, args.batch_size, args.wd, \
+            current_time))
+
+def backup_source_code(backup_directory):
+    ignore_hidden = shutil.ignore_patterns(".", "..", "..", ".git*", "*pycache*",
+                                       "*build", "*.fuse*", "*_drive_*")
+    if os.path.exists(backup_directory):
+        shutil.rmtree(backup_directory)
+    shutil.copytree('.', backup_directory, ignore=ignore_hidden)
+
+
+def save_checkpoint(state, is_best, epoch, output_directory):
+    import torch
+    checkpoint_filename = os.path.join(output_directory,
+                                       'checkpoint-' + str(epoch) + '.pth.tar')
+    torch.save(state, checkpoint_filename)
+    if is_best:
+        best_filename = os.path.join(output_directory, 'model_best.pth.tar')
+        shutil.copyfile(checkpoint_filename, best_filename)
+    if epoch > 0:
+        prev_checkpoint_filename = os.path.join(
+            output_directory, 'checkpoint-' + str(epoch - 1) + '.pth.tar')
+        if os.path.exists(prev_checkpoint_filename):
+            os.remove(prev_checkpoint_filename)
+            
+class logger:
+    def __init__(self, args, tensorboard_writer=None, prepare=True):
+        self.args = args
+        self.writer = tensorboard_writer
+        output_directory = get_folder_name(args)
+        self.output_directory = output_directory
+        self.print_freq = 10
+        self.rank_metric = args.rank_metric
+        
+        self.best_result = Result('test', args)
+        self.best_result.set_to_worst_for_logger()
+        
+        if not prepare:
+            return
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+        
+        # # backup the source code
+        # # if args.resume == '' or args.resume == False:
+        # print("=> creating source code backup ...")
+        # backup_directory = os.path.join(output_directory, "code_backup")
+        # self.backup_directory = backup_directory
+        # backup_source_code(backup_directory)
+        # print("=> finished creating source code backup.")
+        
+        ## csv
+        self.train_csv = os.path.join(output_directory, 'train.csv')
+        self.val_csv = os.path.join(output_directory, 'val.csv')
+        self.best_txt = os.path.join(output_directory, 'best.txt')
+        self.fieldnames = [
+            'epoch', 'precision', 'recall', 'f1_score', 'loss'
+        ]
+        # create new csv files with only header
+        with open(self.train_csv, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
+            writer.writeheader()
+        with open(self.val_csv, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
+            writer.writeheader()
+        
+
+    def conditional_print(self, args, split, i, epoch, lr, n_set, blk_avg_meter, avg_meter, loss):
+        if (i + 1) % self.print_freq == 0:
+            avg = avg_meter.average()
+            blk_avg = blk_avg_meter.average()
+
+            print('=> output: {}'.format(self.output_directory))
+            print(
+                '{split} Epoch: {0} [{1}/{2}]\tlr={lr}\n\t'
+                'Loss={blk_avg.loss:.1f}  '
+                'Precision={blk_avg.precision[0]:.2f}({average.precision[0]:.2f})  '
+                'Recall={blk_avg.recall[0]:.2f}({average.recall[0]:.2f})  '
+                'F1_score={blk_avg.f1_score[0]:.2f}({average.f1_score[0]:.2f})  '
+                # 'MScore={blk_avg.mscore:.2f}({average.mscore:.2f}) '
+                't_infer={blk_avg.gpu_time:.3f}({average.gpu_time:.3f})\n'
+                .format(epoch,
+                        i + 1,
+                        n_set,
+                        lr=lr,
+                        blk_avg=blk_avg,
+                        average=avg,
+                        split=split.capitalize(), 
+                        loss=loss))
+            blk_avg_meter.reset()
+
+    def conditional_save_info(self, args, average_meter, epoch):
+        avg = average_meter.average()
+        if args.mode == "train":
+            csvfile_name = self.train_csv
+        elif args.mode == "val":
+            csvfile_name = self.val_csv
+        else:
+            raise ValueError("wrong mode provided to logger")
+        
+        with open(csvfile_name, 'a') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
+            if args.dataset_type == 'homography':
+                writer.writerow({
+                    'epoch': epoch,
+                    'precision': avg.precision[0],
+                    'recall': avg.recall[0],
+                    'f1_score': avg.f1_score[0],
+                    'loss': avg.loss
+                })
+            else:
+                writer.writerow({
+                    'epoch': epoch,
+                    'precision': avg.precision[0],
+                    'recall': avg.recall[0],
+                    'f1_score': avg.f1_score[0],
+                    'loss': avg.loss
+                })
+        return avg
+    
+    def save_single_txt(self, filename, result, epoch):
+        with open(filename, 'w') as txtfile:
+            txtfile.write(
+                ("rank_metric={}\n" + "epoch={}\n" + "precision={:.3f}\n" +
+                 "recall={:.3f}\n" + "f1_score={:.3f}\n"
+                  + "t_gpu={:.4f}\n" + "loss={:.3f}\n")
+                                        .format(self.rank_metric, epoch,
+                                        result.precision[0], result.recall[0], result.f1_score[0], 
+                                        result.gpu_time, result.loss))
+
+    def save_best_txt(self, result, epoch):
+        self.save_single_txt(self.best_txt, result, epoch)
+
+    def get_ranking_error(self, result):
+        return getattr(result, self.rank_metric)
+
+    def rank_conditional_save_best(self, mode, result, epoch):
+        score = self.get_ranking_error(result)
+        best_score = self.get_ranking_error(self.best_result)
+
+        is_best = np.max(score) > np.max(best_score)
+        if is_best and (mode in ['val']):
+            self.old_best_result = self.best_result
+            self.best_result = result
+            self.save_best_txt(result, epoch)
+        return is_best
+    
+    def _get_image_name(self, mode, epoch, is_best=False):
+        if mode == 'test':
+            return self.output_directory + '/image_test.png'
+        if mode == 'val':
+            if is_best:
+                return self.output_directory + '/image_val_best.png'
+            else:
+                return self.output_directory + '/image_val_' + str(
+                    epoch) + '.png'
+
+    def save_image_as_best(self, mode, epoch):
+        if mode == 'val':
+            filename = self._get_image_name(mode, epoch, is_best=True)
+            # self.writer
+            # make_matching_plot(image0, image1, kpts0, kpts1, mkpts0, mkpts1, klines0, klines1, r2d2kpts0, r2d2kpts1,
+            #            color, text, path, show_keypoints=False,
+            #            fast_viz=False, opencv_display=False,
+            #            opencv_title='matches', small_text=[]):
+
+            # vis_utils.save_image(self.img_merge, filename)
+    
+    def conditional_summarize(self, args, mode, avg, is_best):
+        print("\n*\nSummary of ", mode, "round")
+        print(''
+            'Precision={average.precision[0]:.3f}\n'
+            'Recall={average.recall[0]:.3f}\n'
+            'F1_score={average.f1_score[0]:.3f}\n'
+            't_GPU={average.gpu_time:.3f}\n'
+            'loss={average.loss:.3f}\n'.format(average=avg))
+        if is_best and mode == "val":
+            print("New best model by %s (was %.3f)" %
+                (self.rank_metric,
+                self.get_ranking_error(self.old_best_result)[0]))
+        elif mode == "val":
+            print("(best %s is %.3f)" %
+                (self.rank_metric,
+                self.get_ranking_error(self.best_result)[0]))
+            print("*\n")
+##################################################################################################

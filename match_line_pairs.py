@@ -10,7 +10,7 @@ torch.set_grad_enabled(False)
 
 def read_image(path, device, resize):
     image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
-    if len(resize)==2:
+    if len(resize)==2 and resize[0]!=-1:
         image = cv2.resize(image.astype('float32'), (resize[0], resize[1]))
     image_torch = torch.from_numpy(image/255.).float()[None, None].to(device)
     return image, image_torch

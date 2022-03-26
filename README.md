@@ -17,8 +17,12 @@ This repository contains the inference code, pretrained model, and demo scripts 
 </p>
 
 ---------------------------------------------------
+## Announcements
+- Training codes are available! I hope you like it.
+- PL-Loc with LineTR is on [visual localization benchmark (InLoc dataset)](https://www.visuallocalization.net/benchmark/).
+
 ## TODO List
-- [ ] Support training codes for self-supervised homography augmentation
+- [x] Support training codes for self-supervised homography augmentation
 - [ ] Support a different line detector
 
 ## Abstract
@@ -52,6 +56,18 @@ Keyboard control:
 
 The scripts are partially reusing [SuperGluePretrainedNetwork](https://github.com/magicleap/SuperGluePretrainedNetwork).
 
+## How to train LineTR
+The training scripts and configurations can be modified depending on the development environment. 
+Please also refer to the config files in 'dataloaders/confs/homography.yaml' and 'train_manager.yaml' to adjust #gpu, batch size, nWorkers, etc. 
+
+The raw images should be located in 'assets/dataset/raw_images/' and their dataset files will be saved at 'assets/dataset/dataset_h5/'.
+
+There are three steps for training:
+```
+python dataloaders/build_homography_dataset.py  # 1. building a homography dataset
+python tools/divide_train_val_test.py           # 2. divding files into training and validation sets
+python train.py                                 # 3. training process
+```
 
 ## BibTeX Citation
 
