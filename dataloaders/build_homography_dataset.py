@@ -238,7 +238,7 @@ class Homography_Dataset(Dataset):
         
         
         ## visualization #######################################################################################
-        if self.conf['data']['debug_on'] == True:
+        if self.conf['data']['visualize'] == True:
             green = (0, 255, 0)
             red = (0, 0, 255)
             dbg0 = cv2.cvtColor(gray0.copy(), cv2.COLOR_GRAY2RGB)

@@ -560,14 +560,14 @@ def make_pseudo_lines(n_left, image_shape):
     mask_length = 15
     min_length = 16
     max_rand_length = 160
-    sp_area = [640-min_length-mask_length,480-min_length-mask_length]
+    sp_area = [image_shape[0]-min_length-mask_length,image_shape[1]-min_length-mask_length]
     img_size = np.array(image_shape)
     
     np.random.seed(np.random.randint(1004))
     pseudo_lines = np.zeros((n_left,2,2))
     pseudo_lines[:,0] = np.array(sp_area).T * np.random.rand(n_left, 2)
 
-    np.random.seed(np.random.randint(1004))
+    np.random.seed(np.random.randint(1005))
     pseudo_angle = 2*np.pi * np.random.rand(n_left)
     dist_range = (min_length, max_rand_length)
     pseudo_len = (dist_range[1]-dist_range[0]) * np.random.rand(n_left) + dist_range[0]

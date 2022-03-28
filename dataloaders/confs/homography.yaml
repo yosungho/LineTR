@@ -5,7 +5,7 @@ data:
     output_path: './assets/dataset/dataset_h5'
     image_type: '*.jpg'
     resize: !!python/tuple [640,480]    # width, height
-    debug_on: false
+    visualize: true
 
     n_iters: 1          # iterations of all image set 
     choose_worker: 0    # choose a worker's index ( 0 ~ nWorkers-1 )
@@ -54,7 +54,7 @@ feature:
         max_tokens: 21   # subline에 있는 최대 point개수
         remove_borders: 1
 
-        max_sublines: 300      # sub선분의 최대 개수 제한 > 실제 line 개수
+        max_sublines: 250      # sub선분의 최대 개수 제한 > 실제 line 개수
 
         thred_reprojected: 3    # pixels
         thred_angdiff: 2        # degrees
