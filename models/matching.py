@@ -1,7 +1,7 @@
 import torch
 
 from .superpoint import SuperPoint
-from .line_detector import LSD #, ELSED
+from .line_detector import LSD, MLSD
 from .line_transformer import LineTransformer, get_dist_matrix
 from .nn_matcher import nn_matcher, nn_matcher_distmat
 
@@ -11,8 +11,15 @@ class Matching(torch.nn.Module):
         super().__init__()
         self.auto_min_length = config['auto_min_length']
         self.superpoint = SuperPoint(config.get('superpoint', {}))
-        self.lsd = LSD(config.get('lsd', {}))
-        # self.elsed = ELSED(config.get('elsed', {}))
+        self.detector_model = config['detector']
+
+        if config['detector'] == 'lsd':
+            self.lsd = LSD(config.get('lsd', {}))
+        elif config['detector'] == 'mlsd':
+            self.lsd = MLSD(config.get('mlsd', {}))
+        else: 
+            raise ValueError('Unknown detector type')
+
         self.linetransformer = LineTransformer(config.get('linetransformer', {}))
 
     def forward(self, data):
@@ -31,13 +38,15 @@ class Matching(torch.nn.Module):
                 self.linetransformer.config['min_length'] = max(16, max(image_shape)/40)
                 self.linetransformer.config['token_distance'] = max(8, max(image_shape)/80)
 
-            klines_cv = self.lsd.detect_torch(data['image0'])
-            # klines_cv = self.elsed.detect_torch(data['image0'])
-            
+            if self.detector_model == 'lsd':
+                klines_cv = self.lsd.detect_torch(data['image0'])
+            elif self.detector_model == 'mlsd':
+                klines_cv = self.lsd.detect_torch(data['image0_rgb'])
+
             if not 'valid_mask0' in data.keys():
                 data['valid_mask0'] = torch.ones_like(data['image0']).to(data['image0'])
             valid_mask0 = data['valid_mask0']
-            klines0 = self.linetransformer.preprocess(klines_cv, image_shape, pred_sp0, valid_mask0)
+            klines0 = self.linetransformer.preprocess(klines_cv, image_shape, pred_sp0, self.detector_model, valid_mask0)
             klines0 = self.linetransformer(klines0)
             pred = {**pred, **{k+'0': v for k, v in klines0.items()}}
     
@@ -48,14 +57,17 @@ class Matching(torch.nn.Module):
                 self.linetransformer.config['token_distance'] = max(8, max(image_shape)/80)
             
             # data['image1'] = torch.zeros_like(data['image1']).to(data['image1'])
-            klines_cv = self.lsd.detect_torch(data['image1'])
+            if self.detector_model == 'lsd':
+                klines_cv = self.lsd.detect_torch(data['image1'])
+            elif self.detector_model == 'mlsd':
+                klines_cv = self.lsd.detect_torch(data['image1_rgb'])
             n_lines = len(klines_cv)
             
             if not 'valid_mask1' in data.keys():
                 data['valid_mask1'] = torch.ones_like(data['image1']).to(data['image1'])
             # klines_cv = self.elsed.detect_torch(data['image1'])
             valid_mask1 = data['valid_mask1']
-            klines1 = self.linetransformer.preprocess(klines_cv, image_shape, pred_sp1, valid_mask1)
+            klines1 = self.linetransformer.preprocess(klines_cv, image_shape, pred_sp1, self.detector_model, valid_mask1)
             klines1 = self.linetransformer(klines1)
             pred = {**pred, **{k+'1': v for k, v in klines1.items()}}
             

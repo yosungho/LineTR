@@ -248,11 +248,11 @@ class LineTransformer(nn.Module):
 
         return data
     
-    def preprocess(self, klines_cv, image_shape, pred_superpoint, valid_mask=None):
+    def preprocess(self, klines_cv, image_shape, pred_superpoint, detector_model, valid_mask=None):
         """ Pre-process for line tokenization """
         
         # change line formats (cv2 -> numpy)
-        klines =change_cv2_T_np(klines_cv)
+        klines =change_cv2_T_np(klines_cv, detector_model)
 
         # remove_borders
         _,_,height, width = self.config['image_shape'] = image_shape
