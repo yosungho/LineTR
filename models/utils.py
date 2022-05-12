@@ -166,14 +166,15 @@ class VideoStreamer:
         Returns
             grayim: uint8 numpy array sized H x W.
         """
-        grayim = cv2.imread(impath, 0)
-        if grayim is None:
+        origin_image = cv2.imread(impath)
+        if origin_image is None:
             raise Exception('Error reading image %s' % impath)
-        w, h = grayim.shape[1], grayim.shape[0]
+        w, h = origin_image.shape[1], origin_image.shape[0]
         w_new, h_new = process_resize(w, h, self.resize)
-        grayim = cv2.resize(
-            grayim, (w_new, h_new), interpolation=self.interp)
-        return grayim
+        rgb_image = cv2.resize(
+            origin_image, (w_new, h_new), interpolation=self.interp)
+        grayim = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
+        return grayim, rgb_image
 
     def next_frame(self):
         """ Return the next frame, and increment internal counter.
@@ -183,7 +184,7 @@ class VideoStreamer:
         """
 
         if self.i == self.max_length:
-            return (None, False)
+            return (None, None, False)
         if self.camera:
 
             if self._ip_camera:
@@ -191,27 +192,27 @@ class VideoStreamer:
                 while self._ip_grabbed is False and self._ip_exited is False:
                     time.sleep(.001)
 
-                ret, image = self._ip_grabbed, self._ip_image.copy()
+                ret, origin_image = self._ip_grabbed, self._ip_image.copy()
                 if ret is False:
                     self._ip_running = False
             else:
-                ret, image = self.cap.read()
+                ret, origin_image = self.cap.read()
             if ret is False:
                 print('VideoStreamer: Cannot get image from camera')
-                return (None, False)
-            w, h = image.shape[1], image.shape[0]
+                return (None, None, False)
+            w, h = origin_image.shape[1], origin_image.shape[0]
             if self.video_file:
                 self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.listing[self.i])
 
             w_new, h_new = process_resize(w, h, self.resize)
-            image = cv2.resize(image, (w_new, h_new),
+            rgb_image = cv2.resize(origin_image, (w_new, h_new),
                                interpolation=self.interp)
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+            image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
         else:
             image_file = str(self.listing[self.i])
-            image = self.load_image(image_file)
+            image, rgb_image = self.load_image(image_file)
         self.i = self.i + 1
-        return (image, True)
+        return (image, rgb_image, True)
 
     def start_ip_camera_thread(self):
         self._ip_thread = Thread(target=self.update_ip_camera, args=())

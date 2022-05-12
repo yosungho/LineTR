@@ -200,14 +200,21 @@ def get_dist_matrix(desc0, desc1):
     distance = (2.-2.*distance).clip(min=0)
     return distance
 
-def change_cv2_T_np(klines_cv):
+def change_cv2_T_np(klines_cv, detector_model):
     klines_sp, klines_ep, length, angle = [], [], [], []
 
     for line in klines_cv:
-        sp_x = line.startPointX
-        sp_y = line.startPointY
-        ep_x = line.endPointX
-        ep_y = line.endPointY
+        if detector_model == 'lsd':
+            sp_x = line.startPointX
+            sp_y = line.startPointY
+            ep_x = line.endPointX
+            ep_y = line.endPointY
+        elif detector_model == 'mlsd':
+            sp_x = line[0, 0]
+            sp_y = line[0, 1]
+            ep_x = line[1, 0]
+            ep_y = line[1, 1]
+
         kline_sp = []
         if sp_x < ep_x:
             kline_sp = [sp_x, sp_y]
@@ -216,8 +223,8 @@ def change_cv2_T_np(klines_cv):
             kline_sp = [ep_x, ep_y]
             kline_ep = [sp_x, sp_y]
         
-        # linelength = math.sqrt((kline_ep[0]-kline_sp[0])**2 +(kline_ep[1]-kline_sp[1])**2)
-        linelength = line.lineLength*(2**line.octave)
+        linelength = math.sqrt((kline_ep[0]-kline_sp[0])**2 +(kline_ep[1]-kline_sp[1])**2)
+        # linelength = line.lineLength*(2**line.octave)
         
         klines_sp.append(kline_sp)
         klines_ep.append(kline_ep)
@@ -230,7 +237,7 @@ def change_cv2_T_np(klines_cv):
     angles = get_angles(klines)
     return {'klines':klines, 'length_klines':length, 'angles': angles}
 
-def preprocess(klines_cv, image_shape, pred_superpoint, mask=None, conf={}):
+def preprocess(klines_cv, image_shape, pred_superpoint, detector_model, mask=None, conf={}):
     default_conf={
         'min_length': 16,
         'max_sublines': 256,
@@ -242,8 +249,8 @@ def preprocess(klines_cv, image_shape, pred_superpoint, mask=None, conf={}):
     
     """ Pre-process for line tokenization """
     # cv2np
-    klines =change_cv2_T_np(klines_cv)
-    
+    klines = change_cv2_T_np(klines_cv, detector_model)
+
     # remove_borders
     height, width = image_shape
     border = conf['remove_borders']

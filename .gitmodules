@@ -1,0 +1,3 @@
+[submodule "models/thirdparty/mlsd"]
+	path = models/thirdparty/mlsd
+	url = https://github.com/navervision/mlsd.git

@@ -9,11 +9,14 @@ from models.matching import Matching
 torch.set_grad_enabled(False)
 
 def read_image(path, device, resize):
-    image = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+    origin_image = cv2.imread(str(path))
     if len(resize)==2 and resize[0]!=-1:
-        image = cv2.resize(image.astype('float32'), (resize[0], resize[1]))
-    image_torch = torch.from_numpy(image/255.).float()[None, None].to(device)
-    return image, image_torch
+        rgb_image = cv2.resize(origin_image.astype('float32'), (resize[0], resize[1]))
+    grayim = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
+
+    gray_image_torch = torch.from_numpy(grayim/255.).float()[None, None].to(device) 
+    rgb_image_torch = torch.from_numpy(rgb_image/255.).float()[None, None].to(device)
+    return grayim, gray_image_torch, rgb_image, rgb_image_torch.squeeze().squeeze()
     
 
 if __name__ == '__main__':
@@ -61,9 +64,11 @@ if __name__ == '__main__':
             'max_keypoints': 1024,
             'nn_threshold': 0.7,
         },
-        'lsd': {
-            'n_octave': 2, 
-        },
+        'detector': 'mlsd',
+        'mlsd': {
+            'score_thr': 0.2,
+            'dist_thr': 10,
+         },
         'linetransformer': {
             'max_keylines': -1,
             'min_length': 16,
@@ -82,12 +87,12 @@ if __name__ == '__main__':
         stem0, stem1 = Path(name0).stem, Path(name1).stem
 
         # Load the image pair.
-        image0, image_torch0 = read_image(input_dir / name0, device, opt.resize)
-        image1, image_torch1 = read_image(input_dir / name1, device, opt.resize)
+        image0, image_torch0, image0_rgb, image0_rgb_torch = read_image(input_dir / name0, device, opt.resize)
+        image1, image_torch1, image1_rgb, image1_rgb_torch = read_image(input_dir / name1, device, opt.resize)
 
         # Perform the matching.
         matches_path = output_dir / '{}_{}_matches.npz'.format(stem0, stem1)
-        pred_matches = matching({'image0': image_torch0, 'image1': image_torch1})
+        pred_matches = matching({'image0': image_torch0, 'image0_rgb': image0_rgb_torch, 'image1': image_torch1, 'image1_rgb': image1_rgb_torch})
         pred = {k: v[0].cpu().numpy() for k, v in pred_matches.items() if torch.is_tensor(v[0])}
         pred = {**pred, **{k: v[0] for k, v in pred_matches.items() if not torch.is_tensor(v[0])}}
 
