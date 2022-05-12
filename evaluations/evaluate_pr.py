@@ -5,7 +5,8 @@ class Evaluate_PR():
         self.args = args
         self.thresholds = {}
         self.best_thred = {}
-    
+        self.eps=0.00001
+        
     def calc_TFPN(self, score, score_gt):
         score_gt = np.where(score_gt >0, 1, 0)
 
@@ -24,8 +25,8 @@ class Evaluate_PR():
         precisions, recalls, fscores = [],[],[]
         for i in range(score.shape[0]):
             TP, FP, FN, TN = self.calc_TFPN(score[i], score_gt[i])
-            precision = np.average(np.nan_to_num(TP / (TP+FP)))*100.
-            recall = np.average(np.nan_to_num(TP / (TP+FN)))*100.
+            precision = np.average(np.nan_to_num(TP / (TP+FP+self.eps)))*100.
+            recall = np.average(np.nan_to_num(TP / (TP+FN+self.eps)))*100.
             fscore = np.nan_to_num(2*precision*recall / (precision + recall))
             precisions.append(precision)
             recalls.append(recall)
