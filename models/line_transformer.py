@@ -196,7 +196,7 @@ class LineTransformer(nn.Module):
         'descriptor_dim': 256,
         'keyline_encoder': [32, 64, 128, 256],
         'n_heads': 4,
-        'n_line_descriptive_layers': 12,
+        'n_line_descriptive_layers': 1,
         'd_inner': 1024,    # d_inner at the Feed_Forward Layer
     }
 
