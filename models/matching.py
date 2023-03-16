@@ -49,11 +49,11 @@ class Matching(torch.nn.Module):
             
             # data['image1'] = torch.zeros_like(data['image1']).to(data['image1'])
             klines_cv = self.lsd.detect_torch(data['image1'])
+            # klines_cv = self.elsed.detect_torch(data['image1'])
             n_lines = len(klines_cv)
             
             if not 'valid_mask1' in data.keys():
                 data['valid_mask1'] = torch.ones_like(data['image1']).to(data['image1'])
-            # klines_cv = self.elsed.detect_torch(data['image1'])
             valid_mask1 = data['valid_mask1']
             klines1 = self.linetransformer.preprocess(klines_cv, image_shape, pred_sp1, valid_mask1)
             klines1 = self.linetransformer(klines1)

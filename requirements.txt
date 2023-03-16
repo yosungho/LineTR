@@ -5,3 +5,6 @@ numpy
 einops
 matplotlib
 imgaug
+PyYaml
+tqdm
+tensorflow  # m-lsd detector

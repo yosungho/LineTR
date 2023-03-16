@@ -24,7 +24,7 @@ This repository contains the inference code, pretrained model, and demo scripts 
 
 ## TODO List
 - [x] Support training codes for self-supervised homography augmentation
-- [x] Support a different line detector (please refer to other branches: m-lsd, elsed)
+- [x] Support a different line detector (Please find `lsd`, `elsed`, and `m-lsd` in different branches.)
 
 ## Abstract
 
@@ -37,25 +37,64 @@ This code was tested with Python 3.6 and PyTorch 1.8 on Ubuntu 18.04.
 conda create -y --name linetr
 conda activate linetr
 
-# install the dependencies
-conda install -y python=3.6
+git clone --recursive -b main https://github.com/yosungho/LineTR.git
+cd LineTR
+
+## install the dependencies
+conda install -y python=3.10
 pip install -r requirements.txt
 ```
 
+## Use LineTR with Different Line Segment Detectors
+- LSD (branch: main)
+  ```
+  git checkout main
+  
+  ## test
+  python match_line_pairs.py
+  ```
+
+- ELSED (branch: elsed)
+  Please install pyelsed referring to [ELSED](https://github.com/iago-suarez/ELSED)
+  ```
+  git checkout elsed
+  
+  ## test
+  python match_line_pairs.py
+  ```
+
+- M-LSD (branch: m-lsd)
+  ```
+  git checkout m-lsd
+  git submodule update --init --recursive
+
+  ## test
+  python match_line_pairs.py
+  ```
+
 ## Command
 There are two demo scripts:
-1. `demo_LineTR.py` : run a live demo on a camera or video file
-2. `match_line_pairs.py` : find line correspondence for image pairs, listed in input_pairs.txt
+1. `match_line_pairs.py` : find line correspondence for image pairs, listed in input_pairs.txt
+    ```
+    python match_line_pairs.py
+    ```
 
-Keyboard control:
-* `n`: select the current frame as the anchor
-* `e`/`r`: increase/decrease the keypoint confidence threshold
-* `d`/`f`: increase/decrease the nearest neighbor matching threshold for **keypoints**
-* `c`/`v`: increase/decrease the nearest neighbor matching threshold for **keylines**
-* `k`: toggle the visualization of keypoints
-* `q`: quit
+2. `demo_LineTR.py` : run a live demo on a camera or video file
+    ```
+    DEVICE=0
+    python demo_LineTR.py --input ${DEVICE}
+    ```
 
-The scripts are partially reusing [SuperGluePretrainedNetwork](https://github.com/magicleap/SuperGluePretrainedNetwork).
+    Keyboard control:
+    * `n`: select the current frame as the anchor
+    * `e`/`r`: increase/decrease the keypoint confidence threshold
+    * `d`/`f`: increase/decrease the nearest neighbor matching threshold for **keypoints**
+    * `c`/`v`: increase/decrease the nearest neighbor matching threshold for **keylines**
+    * `k`: toggle the visualization of keypoints
+    * `q`: quit
+
+    The scripts are partially reusing [SuperGluePretrainedNetwork](https://github.com/magicleap/SuperGluePretrainedNetwork).
+
 
 ## How to train LineTR
 The training scripts and configurations can be modified depending on the development environment. 
