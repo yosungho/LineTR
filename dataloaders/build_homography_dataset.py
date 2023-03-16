@@ -47,6 +47,7 @@ def remove_out_edge(pred, valid_mask):
 
     return pred 
 
+# TODO: integrate M-LSD Detector
 class Homography_Dataset(Dataset):
     def __init__(self, conf, device):
             

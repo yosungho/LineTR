@@ -72,7 +72,7 @@ if __name__ == '__main__':
         help='Directory where to write output frames (If None, no output)')
 
     parser.add_argument(
-        '--image_glob', type=str, nargs='+', default=['*.png', '*.jpg', '*.jpeg'],
+        '--image_glob', type=str, nargs='+', default=['*.png', '*.jpg', '*.jpeg', '*.JPG'],
         help='Glob if a directory of images is specified')
     parser.add_argument(
         '--skip', type=int, default=1,
@@ -140,9 +140,11 @@ if __name__ == '__main__':
             'max_keypoints': 1024,
             'nn_threshold': 0.7,
         },
-        'lsd': {
-            'n_octave': 2, 
-        },
+        'detector': 'mlsd',
+        'mlsd': {
+            'score_thr': 0.2,
+            'dist_thr': 10,
+         },
         'linetransformer': {
             'image_shape': [480, 640],
             'max_keylines': -1,
@@ -156,17 +158,24 @@ if __name__ == '__main__':
 
     vs = VideoStreamer(opt.input, opt.resize, opt.skip,
                        opt.image_glob, opt.max_length)
-    frame, ret = vs.next_frame()
+    frame, frame_rgb, ret = vs.next_frame()
     assert ret, 'Error when reading the first frame (try different --input?)'
 
-    frame_tensor = frame2tensor(frame, device)
+    frame_tensor, frame_tensor_rgb = frame2tensor(frame, device), frame2tensor(frame_rgb, device).squeeze().squeeze()
     last_data_sp = matching.superpoint({'image': frame_tensor})
     last_data = {k+'0': last_data_sp[k] for k in keys if k in last_data_sp.keys()}
     last_data['image0'] = frame_tensor
+    last_data['image0_rgb'] = frame_tensor_rgb
 
     # klines_cv = matching.lsd.detect(frame)
-    klines_cv = matching.lsd.detect_torch(frame_tensor)
-    klines0 = matching.linetransformer.preprocess(klines_cv, frame_tensor.shape, last_data_sp)
+    if config['detector'] == 'lsd':
+        klines_cv = matching.lsd.detect_torch(frame_tensor)
+    elif config['detector'] == 'mlsd':
+        klines_cv = matching.lsd.detect_torch(frame_tensor_rgb)
+    else:
+        raise ValueError('Unknown detector type')
+
+    klines0 = matching.linetransformer.preprocess(klines_cv, frame_tensor.shape, last_data_sp, config['detector'])
     klines0 = matching.linetransformer(klines0)
     last_data = {**last_data, **{k+'0': v for k, v in klines0.items()}}
 
@@ -196,15 +205,15 @@ if __name__ == '__main__':
     timer = AverageTimer()
 
     while True:
-        frame, ret = vs.next_frame()
+        frame, frame_rgb, ret = vs.next_frame()
         if not ret:
             print('Finished demo_lineTR.py')
             break
         timer.update('data')
         stem0, stem1 = last_image_id, vs.i - 1
 
-        frame_tensor = frame2tensor(frame, device)
-        pred = matching({**last_data, 'image1': frame_tensor})
+        frame_tensor, frame_tensor_rgb = frame2tensor(frame, device), frame2tensor(frame_rgb, device).squeeze().squeeze()
+        pred = matching({**last_data, 'image1': frame_tensor, 'image1_rgb': frame_tensor_rgb})
         kpts0 = last_data['keypoints0'][0].cpu().numpy()
         kpts1 = pred['keypoints1'][0].cpu().numpy()
         matches = pred['matches_p'][0].cpu().numpy()
