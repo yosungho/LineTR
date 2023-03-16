@@ -8,7 +8,7 @@ This repository contains the inference code, pretrained model, and demo scripts 
   title={Line as a Visual Sentence: Context-Aware Line Descriptor for Visual Localization}, 
   year={2021},
   volume={6},
-  number={4},
+  number={4},git
   pages={8726-8733},
   doi={10.1109/LRA.2021.3111760}}
 ```
@@ -49,27 +49,21 @@ pip install -r requirements.txt
 - LSD (branch: main)
   ```
   git checkout main
-  
-  ## test
-  python match_line_pairs.py
+  python match_line_pairs.py    ## test
   ```
 
 - ELSED (branch: elsed)
-  Please install pyelsed referring to [ELSED](https://github.com/iago-suarez/ELSED)
+  Please install pyelsed referring to [ELSED](https://github.com/iago-suarez/ELSED).
   ```
   git checkout elsed
-  
-  ## test
-  python match_line_pairs.py
+  python match_line_pairs.py    ## test
   ```
 
 - M-LSD (branch: m-lsd)
   ```
   git checkout m-lsd
   git submodule update --init --recursive
-
-  ## test
-  python match_line_pairs.py
+  python match_line_pairs.py  ## test
   ```
 
 ## Command
