@@ -1,6 +1,6 @@
 torch>=1.1.0
-opencv-python==4.0.1.24
-opencv-contrib-python ==4.0.1.24    # LSD detector
+opencv-python==3.4.18.65
+opencv-contrib-python==3.4.18.65    # LSD detector
 numpy
 einops
 matplotlib
