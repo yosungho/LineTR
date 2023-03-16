@@ -8,7 +8,7 @@ This repository contains the inference code, pretrained model, and demo scripts 
   title={Line as a Visual Sentence: Context-Aware Line Descriptor for Visual Localization}, 
   year={2021},
   volume={6},
-  number={4},
+  number={4},git
   pages={8726-8733},
   doi={10.1109/LRA.2021.3111760}}
 ```
@@ -20,11 +20,11 @@ This repository contains the inference code, pretrained model, and demo scripts 
 ## Announcements
 - Training codes are available! I hope you like it.
 - PL-Loc with LineTR is on [visual localization benchmark (InLoc dataset)](https://www.visuallocalization.net/benchmark/).
-- Now LineTR supports more line segment detectors: lsd, elsed, and m-lsd.
+- Now LineTR supports more line segment detectors: `lsd`, `elsed`, and `m-lsd`.
 
 ## TODO List
 - [x] Support training codes for self-supervised homography augmentation
-- [x] Support a different line detector (please refer to other branches: m-lsd, elsed)
+- [x] Support a different line detector (Please find `lsd`, `elsed`, and `m-lsd` in different branches.)
 
 ## Abstract
 
@@ -37,25 +37,58 @@ This code was tested with Python 3.6 and PyTorch 1.8 on Ubuntu 18.04.
 conda create -y --name linetr
 conda activate linetr
 
-# install the dependencies
-conda install -y python=3.6
+git clone --recursive -b main https://github.com/yosungho/LineTR.git
+cd LineTR
+
+## install the dependencies
+conda install -y python=3.10
 pip install -r requirements.txt
 ```
 
+## Use LineTR with Different Line Segment Detectors
+- LSD (branch: main)
+  ```
+  git checkout main
+  python match_line_pairs.py    ## test
+  ```
+
+- ELSED (branch: elsed)
+  Please install pyelsed referring to [ELSED](https://github.com/iago-suarez/ELSED).
+  ```
+  git checkout elsed
+  python match_line_pairs.py    ## test
+  ```
+
+- M-LSD (branch: m-lsd)
+  ```
+  git checkout m-lsd
+  git submodule update --init --recursive
+  python match_line_pairs.py  ## test
+  ```
+
 ## Command
 There are two demo scripts:
-1. `demo_LineTR.py` : run a live demo on a camera or video file
-2. `match_line_pairs.py` : find line correspondence for image pairs, listed in input_pairs.txt
+1. `match_line_pairs.py` : find line correspondence for image pairs, listed in input_pairs.txt
+    ```
+    python match_line_pairs.py
+    ```
 
-Keyboard control:
-* `n`: select the current frame as the anchor
-* `e`/`r`: increase/decrease the keypoint confidence threshold
-* `d`/`f`: increase/decrease the nearest neighbor matching threshold for **keypoints**
-* `c`/`v`: increase/decrease the nearest neighbor matching threshold for **keylines**
-* `k`: toggle the visualization of keypoints
-* `q`: quit
+2. `demo_LineTR.py` : run a live demo on a camera or video file
+    ```
+    DEVICE=0
+    python demo_LineTR.py --input ${DEVICE}
+    ```
 
-The scripts are partially reusing [SuperGluePretrainedNetwork](https://github.com/magicleap/SuperGluePretrainedNetwork).
+    Keyboard control:
+    * `n`: select the current frame as the anchor
+    * `e`/`r`: increase/decrease the keypoint confidence threshold
+    * `d`/`f`: increase/decrease the nearest neighbor matching threshold for **keypoints**
+    * `c`/`v`: increase/decrease the nearest neighbor matching threshold for **keylines**
+    * `k`: toggle the visualization of keypoints
+    * `q`: quit
+
+    The scripts are partially reusing [SuperGluePretrainedNetwork](https://github.com/magicleap/SuperGluePretrainedNetwork).
+
 
 ## How to train LineTR
 The training scripts and configurations can be modified depending on the development environment. 
