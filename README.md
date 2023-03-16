@@ -19,8 +19,9 @@ This repository contains the inference code, pretrained model, and demo scripts 
 ---------------------------------------------------
 ## Announcements
 - Training codes are available! I hope you like it.
-- PL-Loc with LineTR is on [visual localization benchmark (InLoc dataset)](https://www.visuallocalization.net/benchmark/).
-- Now LineTR supports more line segment detectors: lsd, elsed, and m-lsd.
+- (Oct.2021) PL-Loc with LineTR is on [visual localization benchmark (InLoc dataset)](https://www.visuallocalization.net/benchmark/).
+- (Mar.2023) Now LineTR supports more line segment detectors: `lsd`, `elsed`, and `m-lsd`.
+- (Mar.2023) LineTR is accepted to ICRA 2023 with RA-L 2021.
 
 ## TODO List
 - [x] Support training codes for self-supervised homography augmentation
