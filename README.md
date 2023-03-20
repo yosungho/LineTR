@@ -47,7 +47,7 @@ pip install -r requirements.txt
 ```
 
 ## Use LineTR with Different Line Segment Detectors
-- LSD (branch: main)
+- **LSD (branch: main; recommend)**
   ```
   git checkout main
   python match_line_pairs.py    ## test
